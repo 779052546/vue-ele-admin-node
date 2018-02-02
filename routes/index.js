@@ -566,7 +566,27 @@ router.get('/workbirthdayid', function(req, res, next) {
         }
     })
 });
-
+//工作提醒 请假单查询
+//请假单查询
+router.get('/batch', function(req, res, next) {
+    let size = 15;
+    let fromIndex = (req.query.page-1);
+    let conn = "SELECT h.uid,h.status,h.`reason`,h.phone,h.name,h.`timebegin`,h.`timeover`,t.`name` tname,d.`name` dname FROM holiday h LEFT JOIN user u ON(h.`uid`=u.`id`) LEFT JOIN type t ON(h.`type`=t.`id`) LEFT JOIN department d ON(u.`department`=d.`id`) WHERE h.`name` LIKE '%"+req.query.name+"%' and h.`department` LIKE '%"+req.query.department+"%' and h.`timebegin` LIKE '%"+req.query.date+"%' and h.`status` LIKE '%"+req.query.status+"%' LIMIT "+fromIndex+","+size+"";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        let conn = "SELECT  COUNT(*) AS num_count FROM holiday h LEFT JOIN user u ON(h.`uid`=u.`id`) LEFT JOIN type t ON(h.`type`=t.`id`) LEFT JOIN department d ON(u.`department`=d.`id`) WHERE h.`name` LIKE '%"+req.query.name+"%' and h.`department` LIKE '%"+req.query.department+"%' and h.`timebegin` LIKE '%"+req.query.date+"%' and h.`status` LIKE '%"+req.query.status+"%' LIMIT "+fromIndex+","+size+"";
+        db.query(conn,function(err,resl){
+            res.send({
+                code:10000,
+                data:response,
+                total:resl[0].num_count
+            })
+        })
+    })
+});
 
 
 
