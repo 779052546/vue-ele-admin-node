@@ -546,8 +546,8 @@ router.get('/workbirthday', function(req, res, next) {
         }
     })
 });
-router.get('/workbirthdayid', function(req, res, next) {
-    let conn = "select id,phone,name,entry,birthday FROM user  where uid = '"+req.query.uid+"'";
+router.get('/workbirthday1', function(req, res, next) {
+    let conn = "select id,phone,name,entry,birthday FROM user WHERE birthday LIKE '%_____"+req.query.birthday+"_%'";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -566,12 +566,32 @@ router.get('/workbirthdayid', function(req, res, next) {
         }
     })
 });
+router.get('/workbirthdayid', function(req, res, next) {
+    let conn = "select id,phone,name,entry,birthday FROM user where id = '"+req.query.id+"'";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        if(response.length==0){
+            res.send({
+                code:10001,
+                data:null,
+            })
+        }else{
+            res.send({
+                code:10000,
+                data:response[0],
+            })
+        }
+    })
+});
 //工作提醒 请假单查询
 //请假单查询
 router.get('/batch', function(req, res, next) {
     let size = 15;
     let fromIndex = (req.query.page-1);
-    let conn = "SELECT h.uid,h.status,h.`reason`,h.phone,h.name,h.`timebegin`,h.`timeover`,t.`name` tname,d.`name` dname FROM holiday h LEFT JOIN user u ON(h.`uid`=u.`id`) LEFT JOIN type t ON(h.`type`=t.`id`) LEFT JOIN department d ON(u.`department`=d.`id`) WHERE h.`name` LIKE '%"+req.query.name+"%' and h.`department` LIKE '%"+req.query.department+"%' and h.`timebegin` LIKE '%"+req.query.date+"%' and h.`status` LIKE '%"+req.query.status+"%' LIMIT "+fromIndex+","+size+"";
+    let conn = "SELECT h.id,h.uid,h.status,h.`reason`,h.phone,h.name,h.`timebegin`,h.`timeover`,t.`name` tname,d.`name` dname FROM holiday h LEFT JOIN user u ON(h.`uid`=u.`id`) LEFT JOIN type t ON(h.`type`=t.`id`) LEFT JOIN department d ON(u.`department`=d.`id`) WHERE h.`name` LIKE '%"+req.query.name+"%' and h.`department` LIKE '%"+req.query.department+"%' and h.`timebegin` LIKE '%"+req.query.date+"%' and h.`status` LIKE '%"+req.query.status+"%' LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -587,6 +607,79 @@ router.get('/batch', function(req, res, next) {
         })
     })
 });
+//请假单批准
+router.put('/batchholiday', function(req, res, next) {
+    if(req.body.callback==''){
+        req.body.callback=null;
+    }
+    console.log(req.body.status)
+    let conn = "UPDATE holiday SET status = '"+req.body.status+"',callback = '"+req.body.callback+"'  where id = '"+req.body.id+"'";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+
+        res.send({
+            code:10000,
+            data:'审批成功!'
+        })
+
+    })
+});
+
+//薪资管理
+//薪资管理-薪资查看
+router.get('/price', function(req, res, next) {
+    let size = 15;
+    let fromIndex = (req.query.page-1);
+    let conn = "select id,phone,name,price,attendance FROM user where name like '%"+req.query.name+"%' LIMIT "+fromIndex+","+size+"";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        let conn =" select COUNT(*) AS num_count FROM user where name like '%"+req.query.name+"%'"
+        db.query(conn,function(err,resl){
+            res.send({
+                code:10000,
+                data:response,
+                total:resl[0].num_count
+            })
+        })
+    })
+});
+router.get('/priceid', function(req, res, next) {
+    let conn = "select id,phone,name,price,attendance FROM user where id = '"+req.query.id+"'";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:response[0],
+        })
+    })
+});
+//薪资管理--修改薪资
+router.put('/price', function(req, res, next) {
+    let conn = "UPDATE user SET price = '"+req.body.price+"',attendance = '"+req.body.attendance+"'  where id = '"+req.body.id+"'";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:'修改成功!'
+        })
+    })
+});
+
+
+
+
 
 
 
