@@ -25,7 +25,7 @@ function aesDecrypt(password) {
 /* GET home page. */
 //登陆账号
 router.post('/account', function(req, res, next) {
-    let conn = "select id,password from user where phone = '"+req.body.phone+"'";
+    let conn = "select id,power,name from user where phone = '"+req.body.phone+"'";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -56,7 +56,7 @@ router.post('/account', function(req, res, next) {
                 }else{
                     res.send({
                         code:10000,
-                        data:response[0].id,
+                        data:response[0],
                     })
                 }
             })
@@ -129,27 +129,6 @@ router.delete('/deleteuser', function(req, res, next) {
 //查看单人成员信息
 router.get('/userphone', function(req, res, next) {
     let conn = "select * from user where id = '"+req.query.id+"'";
-    db.query(conn,function(err,response){
-        if(err){
-            next(err,req,res);
-            return;
-        }
-        if(response.length==0){
-            res.send({
-                code:9999,
-                data:'登录失效,请重新登录!',
-            })
-        }else{
-            res.send({
-                code:10000,
-                data:response[0],
-            })
-        }
-    })
-});
-//查看单人权限信息
-router.get('/userid', function(req, res, next) {
-    let conn = "select power,name from user where id = '"+req.query.id+"'";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -395,7 +374,7 @@ router.get('/checkmonth', function(req, res, next) {
 });
 //考勤统计 查询各部门及各部门请假人数
 router.get('/attdentype', function(req, res, next) {
-    let conn = "SELECT d.name,h.`department`,COUNT(*) AS count FROM holiday h LEFT JOIN department d ON(d.id=h.department) where timebegin like '%"+req.query.date+"%' GROUP BY NAME";
+    let conn = "SELECT d.name,h.`department`,COUNT(*) AS count FROM holiday h LEFT JOIN department d ON(d.id=h.department) where h.timebegin like '%"+req.query.date+"%' and h.status=1 GROUP BY NAME";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -677,10 +656,115 @@ router.put('/price', function(req, res, next) {
     })
 });
 
-
-
-
-
+//岗位管理
+//岗位管理 -部门查看
+router.get('/depart', function(req, res, next) {
+    let conn = "SELECT d.name,COUNT(*) AS count FROM user u LEFT JOIN department d ON(u.department=d.id) GROUP BY NAME";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        let conn = "select name from department";
+        db.query(conn,function(err,resl){
+            if(response.length==0){
+                res.send({
+                    code:10001,
+                    data:[],
+                    total:resl
+                })
+            }else{
+                res.send({
+                    code:10000,
+                    data:response,
+                    total:resl
+                })
+            }
+        })
+    })
+});
+//岗位管理 -部门添加
+router.post('/depart', function(req, res, next) {
+    let conn = "select * from department where name = '"+req.body.name+"'";
+    db.query(conn,function(err,resl){
+        if(resl.length>0){
+            res.send({
+                code:10002,
+                data:'已存在部门,请更换!'
+            })
+        }else{
+            let conn = `INSERT INTO department SET ?`;
+            db.query(conn,req.body,function(err,response){
+                if(err){
+                    next(err,req,res);
+                    return;
+                }
+                res.send({
+                    code:10000,
+                    data:'ok'
+                })
+            })
+        }
+    })
+});
+//岗位管理 -岗位查看
+router.get('/post1', function(req, res, next) {
+    let size = 15;
+    let fromIndex = (req.query.page-1);
+    let conn = "SELECT p.`id`,p.`name` pname,p.`attendance`,d.`name` FROM post p LEFT JOIN department d ON(p.`dtid`=d.`id`) LIMIT "+fromIndex+","+size+"";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        let conn = "SELECT COUNT(*) AS num_count FROM post p LEFT JOIN department d ON(p.`dtid`=d.`id`)";
+        db.query(conn,function(err,resl){
+            res.send({
+                code:10000,
+                data:response,
+                total:resl[0].num_count
+            })
+        })
+    })
+});
+//岗位管理 -岗位添加
+router.post('/post1', function(req, res, next) {
+    let conn = "select * from post where name = '"+req.body.name+"'";
+    db.query(conn,function(err,resl){
+        if(resl.length>0){
+            res.send({
+                code:10002,
+                data:'已存在岗位,请更换!'
+            })
+        }else{
+            let conn = `INSERT INTO post SET ?`;
+            db.query(conn,req.body,function(err,response){
+                if(err){
+                    next(err,req,res);
+                    return;
+                }
+                res.send({
+                    code:10000,
+                    data:'ok'
+                })
+            })
+        }
+    })
+});
+//岗位管理 -全勤调整
+router.put('/post1', function(req, res, next) {
+    let conn = "UPDATE post SET attendance = '"+req.body.attendance+"' where id = '"+req.body.id+"'";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:'修改成功!'
+        })
+    })
+});
 
 
 //部门查询
