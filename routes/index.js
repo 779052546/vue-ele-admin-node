@@ -68,7 +68,7 @@ router.post('/account', function(req, res, next) {
 router.get('/user', function(req, res, next) {
     let size = 15;
     let fromIndex = (req.query.page-1);
-    let  conn = "select id,name,phone,qq,email,sex,textarea,birthday,status,entry from user where name like '%"+req.query.name+"%' and phone like '%"+req.query.phone+"%' and status like '%"+req.query.status+"%' and sex like '%"+req.query.sex+"%' and department like '%"+req.query.depart+"%' LIMIT "+fromIndex+","+size+"";
+    let  conn = "select id,name,phone,qq,email,sex,textarea,birthday,status,entry,address from user where name like '%"+req.query.name+"%' and phone like '%"+req.query.phone+"%' and status like '%"+req.query.status+"%' and sex like '%"+req.query.sex+"%' and department like '%"+req.query.depart+"%' LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -591,7 +591,6 @@ router.put('/batchholiday', function(req, res, next) {
     if(req.body.callback==''){
         req.body.callback=null;
     }
-    console.log(req.body.status)
     let conn = "UPDATE holiday SET status = '"+req.body.status+"',callback = '"+req.body.callback+"'  where id = '"+req.body.id+"'";
     db.query(conn,function(err,response){
         if(err){
@@ -766,6 +765,84 @@ router.put('/post1', function(req, res, next) {
     })
 });
 
+//信息交流
+//信息交流 -查看留言
+router.get('/message', function(req, res, next) {
+    let size = 15;
+    let fromIndex = (req.query.page-1);
+    let conn = "SELECT * FROM message WHERE uid = '"+req.query.uid+"' LIMIT "+fromIndex+","+size+"";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        let conn = "SELECT COUNT(*) AS num_count FROM message WHERE uid = '"+req.query.uid+"' LIMIT "+fromIndex+","+size+"";
+        db.query(conn,function(err,resl){
+            res.send({
+                code:10000,
+                data:response,
+                total:resl[0].num_count
+            })
+        })
+    })
+});
+router.get('/messageuser', function(req, res, next) {
+    let conn = " SELECT id,phone,name FROM user WHERE department = '"+req.query.department+"' AND id <> '"+req.query.id+"'";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:response,
+        })
+    })
+});
+//信息交流 -添加留言
+router.post('/message', function(req, res, next) {
+    let conn = `INSERT INTO message SET ?`;
+    db.query(conn,req.body,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:'ok'
+        })
+    })
+});
+//信息交流 -修改状态
+router.put('/message', function(req, res, next) {
+    let conn = "UPDATE message SET status = 1  where id = '"+req.body.id+"'";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:'阅读成功!'
+        })
+
+    })
+});
+//信息交流 -删除留言
+router.delete('/message', function(req, res, next) {
+    let conn = `DELETE FROM message WHERE id = ?`;
+    db.query(conn,req.query.id,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:'ok'
+        })
+    })
+});
+
 
 //部门查询
 router.get('/department', function(req, res, next) {
@@ -856,6 +933,20 @@ router.get('/power', function(req, res, next) {
         req.query.id='';
     }
     let conn = "select * from power where id = '"+req.query.id+"'";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:response
+        })
+    })
+});
+//学历查询
+router.get('/education', function(req, res, next) {
+    let conn = "select * from education ";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
