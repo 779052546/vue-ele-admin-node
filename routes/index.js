@@ -67,14 +67,14 @@ router.post('/account', function(req, res, next) {
 //查看成员信息
 router.get('/user', function(req, res, next) {
     let size = 15;
-    let fromIndex = (req.query.page-1);
+    let fromIndex = (req.query.page-1) * size;
     let  conn = "select id,name,phone,qq,email,sex,textarea,birthday,status,entry,address from user where name like '%"+req.query.name+"%' and phone like '%"+req.query.phone+"%' and status like '%"+req.query.status+"%' and sex like '%"+req.query.sex+"%' and department like '%"+req.query.depart+"%' LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
             return;
         }
-        let conn = "select COUNT(*) AS num_count from user where name like '%"+req.query.name+"%' and phone like '%"+req.query.phone+"%' and status like '%"+req.query.status+"%' and sex like '%"+req.query.sex+"%' and department like '%"+req.query.depart+"%' LIMIT "+fromIndex+","+size+"";
+        let conn = "select COUNT(*) AS num_count from user where name like '%"+req.query.name+"%' and phone like '%"+req.query.phone+"%' and status like '%"+req.query.status+"%' and sex like '%"+req.query.sex+"%' and department like '%"+req.query.depart+"%'";
         db.query(conn,function(err,resl){
             res.send({
                 code:10000,
@@ -253,7 +253,7 @@ router.get('/check', function(req, res, next) {
         req.query.page=1;
     }
     let size = 15;
-    let fromIndex = (req.query.page-1);
+    let fromIndex = (req.query.page-1) * size;
     let conn = "select c.name,c.date,c.status,u.phone,d.name dname from check1 c left join user u on(c.uid=u.id) left join department d on(u.department=d.id) where c.date like '%"+req.query.date+"%' and c.name like '%"+req.query.name+"%' LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
@@ -569,7 +569,7 @@ router.get('/workbirthdayid', function(req, res, next) {
 //请假单查询
 router.get('/batch', function(req, res, next) {
     let size = 15;
-    let fromIndex = (req.query.page-1);
+    let fromIndex = (req.query.page-1) * size;
     let conn = "SELECT h.id,h.uid,h.status,h.`reason`,h.phone,h.name,h.`timebegin`,h.`timeover`,t.`name` tname,d.`name` dname FROM holiday h LEFT JOIN user u ON(h.`uid`=u.`id`) LEFT JOIN type t ON(h.`type`=t.`id`) LEFT JOIN department d ON(u.`department`=d.`id`) WHERE h.`name` LIKE '%"+req.query.name+"%' and h.`department` LIKE '%"+req.query.department+"%' and h.`timebegin` LIKE '%"+req.query.date+"%' and h.`status` LIKE '%"+req.query.status+"%' LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
@@ -610,7 +610,7 @@ router.put('/batchholiday', function(req, res, next) {
 //薪资管理-薪资查看
 router.get('/price', function(req, res, next) {
     let size = 15;
-    let fromIndex = (req.query.page-1);
+    let fromIndex = (req.query.page-1) * size;
     let conn = "select id,phone,name,price,attendance FROM user where name like '%"+req.query.name+"%' LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
@@ -709,7 +709,7 @@ router.post('/depart', function(req, res, next) {
 //岗位管理 -岗位查看
 router.get('/post1', function(req, res, next) {
     let size = 15;
-    let fromIndex = (req.query.page-1);
+    let fromIndex = (req.query.page-1) * size;
     let conn = "SELECT p.`id`,p.`name` pname,p.`attendance`,d.`name` FROM post p LEFT JOIN department d ON(p.`dtid`=d.`id`) LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
@@ -769,7 +769,7 @@ router.put('/post1', function(req, res, next) {
 //信息交流 -查看留言
 router.get('/message', function(req, res, next) {
     let size = 15;
-    let fromIndex = (req.query.page-1);
+    let fromIndex = (req.query.page-1) * size;
     let conn = "SELECT * FROM message WHERE uid = '"+req.query.uid+"' LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
@@ -929,10 +929,7 @@ router.get('/userdepartment', function(req, res, next) {
 });
 //权限查询
 router.get('/power', function(req, res, next) {
-    if(req.query.id==undefined){
-        req.query.id='';
-    }
-    let conn = "select * from power where id = '"+req.query.id+"'";
+    let conn = "select * from power ";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -958,5 +955,18 @@ router.get('/education', function(req, res, next) {
         })
     })
 });
-
+//未读留言查询
+router.get('/message0', function(req, res, next) {
+    let conn = "SELECT COUNT(*) AS num_count FROM message WHERE uid = '"+req.query.uid+"' and status = 0";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:response[0].num_count,
+        })
+    })
+});
 module.exports = router;
