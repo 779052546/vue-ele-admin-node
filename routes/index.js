@@ -68,7 +68,7 @@ router.post('/account', function(req, res, next) {
 router.get('/user', function(req, res, next) {
     let size = 15;
     let fromIndex = (req.query.page-1) * size;
-    let  conn = "select id,name,phone,qq,email,sex,textarea,birthday,status,entry,address from user where name like '%"+req.query.name+"%' and phone like '%"+req.query.phone+"%' and status like '%"+req.query.status+"%' and sex like '%"+req.query.sex+"%' and department like '%"+req.query.depart+"%' LIMIT "+fromIndex+","+size+"";
+    let  conn = "select u.id,u.name,u.phone,u.qq,u.email,u.origin,u.sex,u.textarea,u.birthday,u.status,u.entry,u.address,e.name education from user u left join education e on(u.education=e.id) where u.name like '%"+req.query.name+"%' and u.phone like '%"+req.query.phone+"%' and u.status like '%"+req.query.status+"%' and u.sex like '%"+req.query.sex+"%' and u.department like '%"+req.query.depart+"%' LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
