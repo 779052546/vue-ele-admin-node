@@ -68,7 +68,7 @@ router.post('/account', function(req, res, next) {
 router.get('/user', function(req, res, next) {
     let size = 15;
     let fromIndex = (req.query.page-1) * size;
-    let  conn = "select u.id,u.name,u.phone,u.qq,u.email,u.origin,u.sex,u.textarea,u.birthday,u.status,u.entry,u.address,e.name education from user u left join education e on(u.education=e.id) where u.name like '%"+req.query.name+"%' and u.phone like '%"+req.query.phone+"%' and u.status like '%"+req.query.status+"%' and u.sex like '%"+req.query.sex+"%' and u.department like '%"+req.query.depart+"%' LIMIT "+fromIndex+","+size+"";
+    let  conn = "select u.id,u.name,u.phone,u.qq,u.email,u.origin,u.sex,u.textarea,u.birthday,u.status,u.entry,u.address,e.name education from user u left join education e on(u.education=e.id) where u.name like '%"+req.query.name+"%' and u.phone like '%"+req.query.phone+"%' and u.status like '%"+req.query.status+"%' and u.sex like '%"+req.query.sex+"%' and u.department like '%"+req.query.depart+"%' ORDER BY id DESC LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -475,7 +475,7 @@ router.get('/departcheck', function(req, res, next) {
 
 //当月绩效
 router.get('/achievements', function(req, res, next) {
-    let conn = "SELECT c.uid,c.name,u.price,u.attendance,COUNT(*) AS count FROM check1 c LEFT JOIN user u ON(c.uid=u.id) WHERE c.date LIKE '%"+req.query.date+"%' and c.name LIKE '%"+req.query.name+"%' GROUP BY uid";
+    let conn = "SELECT c.uid,c.name,u.price,u.attendance,COUNT(*) AS count FROM user u LEFT JOIN check1 c ON(c.uid=u.id) WHERE c.date LIKE '%"+req.query.date+"%' and c.name LIKE '%"+req.query.name+"%' GROUP BY uid";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -570,7 +570,7 @@ router.get('/workbirthdayid', function(req, res, next) {
 router.get('/batch', function(req, res, next) {
     let size = 15;
     let fromIndex = (req.query.page-1) * size;
-    let conn = "SELECT h.id,h.uid,h.status,h.`reason`,h.phone,h.name,h.`timebegin`,h.`timeover`,t.`name` tname,d.`name` dname FROM holiday h LEFT JOIN user u ON(h.`uid`=u.`id`) LEFT JOIN type t ON(h.`type`=t.`id`) LEFT JOIN department d ON(u.`department`=d.`id`) WHERE h.`name` LIKE '%"+req.query.name+"%' and h.`department` LIKE '%"+req.query.department+"%' and h.`timebegin` LIKE '%"+req.query.date+"%' and h.`status` LIKE '%"+req.query.status+"%' LIMIT "+fromIndex+","+size+"";
+    let conn = "SELECT h.id,h.uid,h.status,h.`reason`,h.phone,h.name,h.`timebegin`,h.`timeover`,t.`name` tname,d.`name` dname FROM holiday h LEFT JOIN user u ON(h.`uid`=u.`id`) LEFT JOIN type t ON(h.`type`=t.`id`) LEFT JOIN department d ON(u.`department`=d.`id`) WHERE h.`name` LIKE '%"+req.query.name+"%' and h.`department` LIKE '%"+req.query.department+"%' and h.`timebegin` LIKE '%"+req.query.date+"%' and h.`status` LIKE '%"+req.query.status+"%' ORDER BY id DESC LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -770,7 +770,7 @@ router.put('/post1', function(req, res, next) {
 router.get('/message', function(req, res, next) {
     let size = 15;
     let fromIndex = (req.query.page-1) * size;
-    let conn = "SELECT * FROM message WHERE uid = '"+req.query.uid+"' LIMIT "+fromIndex+","+size+"";
+    let conn = "SELECT * FROM message WHERE uid = '"+req.query.uid+"' ORDER BY id DESC LIMIT "+fromIndex+","+size+"";
     db.query(conn,function(err,response){
         if(err){
             next(err,req,res);
@@ -966,6 +966,34 @@ router.get('/message0', function(req, res, next) {
         res.send({
             code:10000,
             data:response[0].num_count,
+        })
+    })
+});
+//审批提醒
+router.get('/batch0', function(req, res, next) {
+    let conn = "SELECT COUNT(*) AS num_count FROM holiday WHERE status = 0";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:response[0].num_count,
+        })
+    })
+});
+//统计总人数
+router.get('/usercount', function(req, res, next) {
+    let  conn = "SELECT COUNT(*) AS count FROM user ";
+    db.query(conn,function(err,response){
+        if(err){
+            next(err,req,res);
+            return;
+        }
+        res.send({
+            code:10000,
+            data:response[0].count,
         })
     })
 });
