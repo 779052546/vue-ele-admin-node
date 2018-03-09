@@ -16,10 +16,7 @@ app.set('view engine', 'hbs');
 
 //设置cors
 var cors = require('cors');
-app.use(cors({
-    origin:'http://localhost:8000',//只
-    credentials:true//启用证书模式
-}));
+app.use(cors());
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
