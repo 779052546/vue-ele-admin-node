@@ -906,7 +906,7 @@ router.get('/postid', function(req, res, next) {
         })
     })
 });
-//查询查询用户哪个部门 用于请假
+//查询用户哪个部门 用于请假
 router.get('/userdepartment', function(req, res, next) {
     let conn = "select u.phone,u.department,d.name from user u left join department d ON(u.department = d.id) where u.id = '"+req.query.id+"' ";
     db.query(conn,function(err,response){
